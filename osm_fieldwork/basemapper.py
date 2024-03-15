@@ -283,13 +283,13 @@ class BaseMapper(object):
 
         Returns:
             (list): The bounding box coordinates
-        """ 
+        """
 
         if isinstance(boundary, BytesIO):
-            # Convert bytes to GeoJSON 
-            try: 
+            # Convert bytes to GeoJSON
+            try:
                 boundary.seek(0)
-                byte_string = boundary.read().decode('utf-8')
+                byte_string = boundary.read().decode("utf-8")
                 poly = geojson.loads(byte_string)
             except Exception as e:
                 print("Error occured while converting bytes to GeoJSON: ", e)
@@ -316,7 +316,7 @@ class BaseMapper(object):
             # minX, minY, maxX, maxY
             return bbox
 
-        else: 
+        else:
             # Is BBOX string
             try:
                 if "," in boundary:
@@ -336,7 +336,7 @@ class BaseMapper(object):
                 msg = f"Failed to parse BBOX string: {boundary}"
                 log.error(msg)
                 raise ValueError(msg) from None
-        
+
 
 def tileid_from_y_tile(filepath: Union[Path | str]):
     """Helper function to get the tile id from a tile in z/x/y directory structure.
@@ -546,7 +546,7 @@ def main():
     parser.add_argument("-v", "--verbose", action="store_true", help="verbose output")
 
     # Required argument specifying the boundary for the area of interest.
-    # It accepts either a path to a GeoJSON file or a bounding box string in the format 'min_x min_y max_x max_y' 
+    # It accepts either a path to a GeoJSON file or a bounding box string in the format 'min_x min_y max_x max_y'
     parser.add_argument(
         "-b",
         "--boundary",
@@ -559,11 +559,11 @@ def main():
 
     # Optional argument for specifying a custom TMS (Tile Map Service) URL.
     parser.add_argument("-t", "--tms", help="Custom TMS URL")
-    
+
     # Optional argument to indicate whether to swap the X & Y coordinates when using a custom TMS.
     parser.add_argument("--xy", default=False, help="Swap the X & Y coordinates when using a custom TMS")
-    
-    # Optional argument specifying the output file name for the basemap. 
+
+    # Optional argument specifying the output file name for the basemap.
     parser.add_argument(
         "-o", "--outfile", required=False, help="Output file name, allowed extensions [.mbtiles/.sqlitedb/.pmtiles]"
     )
@@ -589,12 +589,6 @@ def main():
 
     if args.config:
         print(args.config)
-        # import json
-        # try:
-        #     config = json.loads(args.config)
-        # except json.JSONDecodeError as e:
-        #     print("Error decoding config JSON:", e)
-        #     return
 
     # Argument Validations
     if not args.boundary:
@@ -617,8 +611,8 @@ def main():
 
         with open(args.boundary[0], "rb") as geojson_file:
             boundary = geojson_file.read()  # read as a `bytes` object.
-            boundary_parsed = BytesIO(boundary)   # add to a BytesIO wrapper
-        
+            boundary_parsed = BytesIO(boundary)  # add to a BytesIO wrapper
+
         # boundary_parsed = args.boundary[0]
     elif len(args.boundary) == 4:
         boundary_parsed = ",".join(args.boundary)

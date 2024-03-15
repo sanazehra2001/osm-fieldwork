@@ -33,12 +33,11 @@ rootdir = os.path.dirname(os.path.abspath(__file__))
 boundary_file = f"{rootdir}/testdata/Rollinsville.geojson"
 
 with open(boundary_file, "rb") as geojson_file:
-    boundary = geojson_file.read() 
+    boundary = geojson_file.read()
 boundary = BytesIO(boundary)
 
 outfile = f"{rootdir}/testdata/rollinsville.mbtiles"
 base = "./tiles"
-
 
 
 def test_create():
@@ -64,7 +63,7 @@ def test_create():
     outf.db = None
     outf.cursor = None
 
-    os.remove(outfile) 
+    os.remove(outfile)
     shutil.rmtree(base)
 
     assert hits == 2
@@ -90,6 +89,7 @@ def clear_out_dir():
 
 # Test create_basemap_file with Bbox Coordinates
 
+
 def test_bbox_coords():
     boundary = "-4.730494, 41.650541, -4.725634, 41.652874"
 
@@ -104,21 +104,22 @@ def test_bbox_coords():
 
     assert os.listdir(base), "No files were downloaded in the directory"
     assert os.path.isfile(outfile), "Output file not created"
-    
+
     clear_out_dir()
 
     print("Test passed with boundary passed as coordinates \n")
-    
+
 
 # Test create_basemap_file with GeoJSON BytesIOWrapped file
+
 
 def test_in_memory_geojson():
     boundary_file = f"{rootdir}/testdata/Rollinsville.geojson"
 
     with open(boundary_file, "rb") as geojson_file:
-        boundary = geojson_file.read() 
-    
-    boundary = BytesIO(boundary)   # add to a BytesIO wrapper
+        boundary = geojson_file.read()
+
+    boundary = BytesIO(boundary)  # add to a BytesIO wrapper
 
     create_basemap_file(
         verbose=True,
@@ -131,9 +132,9 @@ def test_in_memory_geojson():
 
     assert os.listdir(base), "No files were downloaded in the directory"
     assert os.path.isfile(outfile), "Output file not created"
-    
+
     clear_out_dir()
-    
+
     print("Test passed with boundary passed as BytesIO wrapped file \n")
 
 
@@ -142,5 +143,5 @@ if __name__ == "__main__":
     test_create()
 
     test_bbox_coords()
-    
+
     test_in_memory_geojson()
