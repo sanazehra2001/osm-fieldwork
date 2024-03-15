@@ -22,29 +22,29 @@
 import logging
 import os
 import shutil
-
+from io import BytesIO
 from osm_fieldwork.basemapper import BaseMapper
+from osm_fieldwork.basemapper import create_basemap_file
 from osm_fieldwork.sqlite import DataFile
 
 log = logging.getLogger(__name__)
 
 rootdir = os.path.dirname(os.path.abspath(__file__))
-boundary = f"{rootdir}/testdata/Rollinsville.geojson"
+boundary_file = f"{rootdir}/testdata/Rollinsville.geojson"
+
+with open(boundary_file, "rb") as geojson_file:
+    boundary = geojson_file.read() 
+boundary = BytesIO(boundary)
+
 outfile = f"{rootdir}/testdata/rollinsville.mbtiles"
 base = "./tiles"
-# boundary = open(infile, "r")
-# poly = geojson.load(boundary)
-# if "features" in poly:
-#    geometry = shape(poly["features"][0]["geometry"])
-# elif "geometry" in poly:
-#    geometry = shape(poly["geometry"])
-# else:
-#    geometry = shape(poly)
+
 
 
 def test_create():
     """See if the file got loaded."""
     hits = 0
+
     basemap = BaseMapper(boundary, base, "topo", False)
     tiles = list()
     for level in [8, 9, 10, 11, 12]:
@@ -60,11 +60,87 @@ def test_create():
     outf = DataFile(outfile, basemap.getFormat())
     outf.writeTiles(tiles, base)
 
-    os.remove(outfile)
+    outf.db.close()
+    outf.db = None
+    outf.cursor = None
+
+    os.remove(outfile) 
     shutil.rmtree(base)
 
     assert hits == 2
 
 
+def clear_out_dir():
+
+    print("\nDeleting all files and directories from tiles cache \n")
+
+    for filename in os.listdir(base):
+        file_path = os.path.join(base, filename)
+
+        try:
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+
+        except Exception as e:
+            print(f"Failed to delete {file_path}: {e}")
+
+
+# Test create_basemap_file with Bbox Coordinates
+
+def test_bbox_coords():
+    boundary = "-4.730494, 41.650541, -4.725634, 41.652874"
+
+    create_basemap_file(
+        verbose=True,
+        boundary=boundary,
+        outfile=outfile,
+        outdir=base,
+        zooms="12-15",
+        source="esri",
+    )
+
+    assert os.listdir(base), "No files were downloaded in the directory"
+    assert os.path.isfile(outfile), "Output file not created"
+    
+    clear_out_dir()
+
+    print("Test passed with boundary passed as coordinates \n")
+    
+
+# Test create_basemap_file with GeoJSON BytesIOWrapped file
+
+def test_in_memory_geojson():
+    boundary_file = f"{rootdir}/testdata/Rollinsville.geojson"
+
+    with open(boundary_file, "rb") as geojson_file:
+        boundary = geojson_file.read() 
+    
+    boundary = BytesIO(boundary)   # add to a BytesIO wrapper
+
+    create_basemap_file(
+        verbose=True,
+        boundary=boundary,
+        outfile=outfile,
+        outdir=base,
+        zooms="12-15",
+        source="esri",
+    )
+
+    assert os.listdir(base), "No files were downloaded in the directory"
+    assert os.path.isfile(outfile), "Output file not created"
+    
+    clear_out_dir()
+    
+    print("Test passed with boundary passed as BytesIO wrapped file \n")
+
+
 if __name__ == "__main__":
+
     test_create()
+
+    test_bbox_coords()
+    
+    test_in_memory_geojson()
